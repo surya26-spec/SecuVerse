@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecuVerse GuardView</title>
+    <!-- Use fresh cache buster -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v10">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-dash {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-dash .badge {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--primary-light);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .dash-card {
+            background: linear-gradient(135deg, rgba(23, 23, 23, 0.6) 0%, rgba(23, 23, 23, 0.4) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.03), transparent 40%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .dash-card:hover::before {
+            opacity: 1;
+        }
+
+        .dash-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .dash-card h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .dash-card .value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+        }
+
+        /* Status Colors for Cards */
+        .dash-card.active-status {
+            border-top: 2px solid var(--success);
+        }
+
+        .dash-card.active-status .value {
+            color: #34d399;
+            /* Emerald 400 */
+            text-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+        }
+
+        .dash-card.danger {
+            border-top: 2px solid var(--danger);
+        }
+
+        .dash-card.danger .value {
+            color: #f87171;
+            /* Red 400 */
+            text-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+        }
+
+        .dash-card.warning {
+            border-top: 2px solid var(--warning);
+        }
+
+        .dash-card.warning .value {
+            color: #fbbf24;
+            /* Amber 400 */
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+
+        .dash-card.info {
+            border-top: 2px solid var(--primary);
+        }
+
+        .dash-card.info .value {
+            color: #a78bfa;
+            /* Violet 400 */
+            text-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+        }
+
+        .section-title {
+            margin-bottom: 25px;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 2px;
+            display: block;
+        }
+
+        .chart-glass {
+            background: linear-gradient(135deg, rgba(23, 23, 23, 0.6) 0%, rgba(23, 23, 23, 0.4) 100%);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            height: 350px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Modern Table */
+        .glass-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 10px;
+        }
+
+        .glass-table th {
+            text-align: left;
+            padding: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-table td {
+            padding: 1.2rem;
+            color: var(--text-main);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .glass-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+            color: white;
+        }
+
+        .glass-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-badge.normal {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-badge.attack {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .sim-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sim-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .sim-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="mesh-gradient"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="dashboard-container">
+        <div class="header-dash">
+            <div>
+                <span class="badge">Live Monitoring</span>
+                <h1 style="font-size: 2.5rem; margin: 0; font-weight: 800; color: white;">SecuVerse <span
+                        class="text-gradient">GuardView</span></h1>
+                <p style="color: var(--text-muted); margin-top: 5px;">Real-time network traffic analysis and threat
+                    detection</p>
+            </div>
+            <div
+                style="display: flex; gap: 10px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);">
+                <a href="/" class="nav-link">Analyzer</a>
+                <a href="/phishing" class="nav-link">Phishing</a>
+                <a href="/honeypot" class="nav-link">Honeypot</a>
+                <a href="/dashboard" class="nav-link active">SecuVerse GuardView</a>
+                <a href="/logout" class="nav-link"
+                    style="color: #f87171; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1);">Logout</a>
+            </div>
+        </div>
+
+        <div class="card-grid">
+            <div class="dash-card active-status">
+                <h3>System Status</h3>
+                <div class="value">Active</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                    <span style="color: #34d399;">●</span> All systems operational
+                </div>
+            </div>
+            <div class="dash-card info">
+                <h3>Total Requests</h3>
+                <div class="value" id="total-reqs">Loading...</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                    Processed in session
+                </div>
+            </div>
+            <div class="dash-card danger">
+                <h3>Threats</h3>
+                <div class="value" id="threat-count">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                    Intrusion attempts blocked
+                </div>
+            </div>
+            <div class="dash-card warning">
+                <h3>Honeypot Hits</h3>
+                <div class="value" id="honey-count">0</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                    Trapped malicious actors
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Attack Simulation Zone</h2>
+        <div class="dash-card warning" style="margin-bottom: 40px; border-top-color: #f59e0b;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h3 style="color: #fbbf24;">⚠️ Trigger Live Attacks</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; max-width: 600px;">
+                        Safely simulate cyber attacks against this server to verify IDS detection capabilities.
+                        <strong>Warning:</strong> These actions generate real traffic and logs.
+                    </p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <button onclick="runAttack('bruteforce')" class="sim-btn">
+                    <span style="color: #f87171;">⚡</span> Sim Brute Force
+                </button>
+                <button onclick="runAttack('portscan')" class="sim-btn">
+                    <span style="color: #fbbf24;">🔍</span> Sim Port Scan
+                </button>
+                <button onclick="runAttack('phishing')" class="sim-btn">
+                    <span style="color: #a78bfa;">🎣</span> Sim Phishing
+                </button>
+                <button onclick="runAttack('injection')" class="sim-btn">
+                    <span style="color: #34d399;">💉</span> Sim SQL Injection
+                </button>
+                <button onclick="run10PartSim()" class="sim-btn"
+                    style="border-color: #8b5cf6; background: rgba(139, 92, 246, 0.1);">
+                    <span style="color: #a78bfa;">📊</span> Start 10-Part Live Monitor
+                </button>
+            </div>
+            <div id="sim-output"
+                style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 8px; border-left: 3px solid #fbbf24; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #e5e7eb; display: none;">
+                <!-- Output here -->
+            </div>
+        </div>
+
+        <h2 class="section-title">10-Part Traffic Monitor</h2>
+        <div class="chart-glass" style="margin-bottom: 20px; height: 350px;">
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <!-- Status Grid -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 40px;">
+            <!-- Loop for 10 Parts generated by JS -->
+            <div id="status-grid-container" style="display: contents;">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <h2 class="section-title">Attack Analysis</h2>
+        <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+            <div class="dash-card danger" style="padding: 15px;">
+                <h3 style="font-size: 0.8rem;">Brute Force</h3>
+                <div class="value" id="bf-count" style="font-size: 2rem;">0</div>
+            </div>
+            <div class="dash-card warning" style="padding: 15px;">
+                <h3 style="font-size: 0.8rem;">Port Scans</h3>
+                <div class="value" id="scan-count" style="font-size: 2rem;">0</div>
+            </div>
+            <div class="dash-card info" style="padding: 15px; border-top-color: #3b82f6;">
+                <h3 style="font-size: 0.8rem;">SQL Injection</h3>
+                <div class="value" id="sqli-count" style="font-size: 2rem;">0</div>
+            </div>
+            <div class="dash-card active-status" style="padding: 15px; border-top-color: #a78bfa;">
+                <h3 style="font-size: 0.8rem;">Phishing Checks</h3>
+                <div class="value" id="phish-count" style="font-size: 2rem;">0</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Traffic Analysis</h2>
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-bottom: 50px;">
+            <div class="chart-glass">
+                <canvas id="typeChart"></canvas>
+            </div>
+            <div class="chart-glass">
+                <canvas id="protoChart"></canvas>
+            </div>
+        </div>
+
+        <h2 class="section-title">Recent Activity Log</h2>
+        <div class="chart-glass" style="height: auto; padding: 0; overflow: hidden;">
+            <div style="overflow-x: auto;">
+                <table class="glass-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Source IP</th>
+                            <th>Protocol</th>
+                            <th>Status</th>
+                            <th>Info</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-body">
+                        <!-- Data will be populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Spotlight Effect
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            document.documentElement.style.setProperty('--mouse-x', x + 'px');
+            document.documentElement.style.setProperty('--mouse-y', y + 'px');
+        });
+
+        // Global Chart Defaults for Neon Theme
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        let typeChartInstance = null;
+        let protoChartInstance = null;
+        let lineChartInstance = null;
+
+        function initCharts() {
+            // Type Chart
+            const ctx1 = document.getElementById('typeChart').getContext('2d');
+            typeChartInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Normal Traffic', 'Intrusion'],
+                    datasets: [{
+                        data: [1, 0],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderColor: ['rgba(16, 185, 129, 0.2)', 'rgba(239, 68, 68, 0.2)'],
+                        borderWidth: 2,
+                        hoverOffset: 15,
+                        hoverBorderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'TRAFFIC CLASSIFICATION',
+                            color: '#fff',
+                            font: { size: 14, weight: 'bold' },
+                            padding: { bottom: 20 }
+                        }
+                    },
+                    cutout: '75%',
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            // Protocol Chart
+            const ctx2 = document.getElementById('protoChart').getContext('2d');
+            const gradientTCP = ctx2.createLinearGradient(0, 0, 0, 300);
+            gradientTCP.addColorStop(0, '#3b82f6');
+            gradientTCP.addColorStop(1, 'rgba(59, 130, 246, 0.1)');
+
+            const gradientUDP = ctx2.createLinearGradient(0, 0, 0, 300);
+            gradientUDP.addColorStop(0, '#8b5cf6');
+            gradientUDP.addColorStop(1, 'rgba(139, 92, 246, 0.1)');
+
+            const gradientICMP = ctx2.createLinearGradient(0, 0, 0, 300);
+            gradientICMP.addColorStop(0, '#f59e0b');
+            gradientICMP.addColorStop(1, 'rgba(245, 158, 11, 0.1)');
+
+            protoChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['TCP', 'UDP', 'ICMP'],
+                    datasets: [{
+                        label: 'Packets',
+                        data: [0, 0, 0],
+                        backgroundColor: [gradientTCP, gradientUDP, gradientICMP],
+                        borderRadius: 8,
+                        barThickness: 50,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'PROTOCOL DISTRIBUTION',
+                            color: '#fff',
+                            font: { size: 14, weight: 'bold' },
+                            padding: { bottom: 20 }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+
+            // --- Multi-Line Monitor Chart ---
+            const ctx3 = document.getElementById('lineChart').getContext('2d');
+
+            // Generate 10 distinct colors for the lines
+            const lineColors = [
+                '#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444',
+                '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4'
+            ];
+
+            const datasets = [];
+            for (let i = 1; i <= 10; i++) {
+                datasets.push({
+                    label: `Part ${i}`,
+                    data: [], // Will be populated with time series
+                    borderColor: lineColors[i - 1],
+                    backgroundColor: lineColors[i - 1],
+                    borderWidth: 2,
+                    tension: 0.4, // Smooth curve
+                    pointRadius: 0
+                });
+            }
+
+            lineChartInstance = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: [], // Time labels
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            suggestedMax: 10
+                        },
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#94a3b8',
+                                font: { size: 10 },
+                                boxWidth: 10
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'REAL-TIME 10-PART TRAFFIC MONITOR',
+                            color: '#fff',
+                            font: { size: 14, weight: 'bold' }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                }
+            });
+        }
+
+        function updateStats() {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    const normal = data.type_counts['Normal'] || 0;
+                    const intrusion = data.type_counts['Intrusion'] || 0;
+
+                    if (typeChartInstance) {
+                        typeChartInstance.data.datasets[0].data = [normal, intrusion];
+                        typeChartInstance.update('none'); // Update without full re-render
+                    }
+
+                    const tcp = data.proto_counts['tcp'] || 0;
+                    const udp = data.proto_counts['udp'] || 0;
+                    const icmp = data.proto_counts['icmp'] || 0;
+
+                    if (protoChartInstance) {
+                        protoChartInstance.data.datasets[0].data = [tcp, udp, icmp];
+                        protoChartInstance.update('none');
+                    }
+
+                    // Specific counts 
+                    // Note: 'type_counts' keys match the 'type' field in DB logs
+                    const bf = data.type_counts['Brute Force'] || 0;
+                    const sqli = data.type_counts['SQL Injection'] || 0;
+                    const scan = data.type_counts['Port Scan'] || 0;
+                    const phish = data.type_counts['Phishing'] || 0;
+
+                    animateValue("total-reqs", parseInt(document.getElementById('total-reqs').innerText) || 0, normal + intrusion + bf + sqli + scan + phish, 1000);
+                    animateValue("threat-count", parseInt(document.getElementById('threat-count').innerText) || 0, intrusion + scan + sqli, 1000);
+                    animateValue("honey-count", parseInt(document.getElementById('honey-count').innerText) || 0, (data.type_counts['Honeypot'] || 0) + bf + sqli, 1000);
+
+                    animateValue("bf-count", parseInt(document.getElementById('bf-count').innerText) || 0, bf, 1000);
+                    animateValue("sqli-count", parseInt(document.getElementById('sqli-count').innerText) || 0, sqli, 1000);
+                    animateValue("scan-count", parseInt(document.getElementById('scan-count').innerText) || 0, scan, 1000);
+                    animateValue("phish-count", parseInt(document.getElementById('phish-count').innerText) || 0, phish, 1000);
+                });
+        }
+
+        function updateLineChart() {
+            if (!lineChartInstance) return;
+
+            fetch('/api/part_stats')
+                .then(res => res.json())
+                .then(data => {
+                    // Data format: { 'HH:MM:SS': {'192.168.1.1': 5, ...}, ... }
+                    // We need to sort keys (times)
+                    const times = Object.keys(data).sort();
+
+                    // Limit to last 20 points
+                    const recentTimes = times.slice(-20);
+
+                    lineChartInstance.data.labels = recentTimes;
+
+                    // Update each dataset (Part 1-10)
+                    for (let i = 0; i < 10; i++) {
+                        const ip = `192.168.1.${i + 1}`;
+                        const counts = recentTimes.map(t => data[t][ip] || 0);
+                        lineChartInstance.data.datasets[i].data = counts;
+                    }
+
+                    lineChartInstance.update('none');
+                })
+                .catch(err => console.error("Line chart update error", err));
+        }
+
+        function updateStatusGrid() {
+            fetch('/api/part_status')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('status-grid-container');
+
+                    // First time init if empty
+                    if (container.children.length === 0) {
+                        for (let i = 1; i <= 10; i++) {
+                            const div = document.createElement('div');
+                            div.id = `status-part-${i}`;
+                            div.style.background = 'rgba(16, 185, 129, 0.15)'; // Default Green
+                            div.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+                            div.style.borderRadius = '12px';
+                            div.style.padding = '15px';
+                            div.style.textAlign = 'center';
+                            div.style.transition = 'all 0.3s ease';
+
+                            div.innerHTML = `
+                                <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 5px;">PART ${i}</div>
+                                <div class="status-text" style="font-weight: 800; color: #34d399;">NORMAL</div>
+                            `;
+                            container.appendChild(div);
+                        }
+                    }
+
+                    // Update
+                    for (let i = 1; i <= 10; i++) {
+                        const ip = `192.168.1.${i}`;
+                        const status = data[ip] || 'Normal';
+                        const el = document.getElementById(`status-part-${i}`);
+                        const textEl = el.querySelector('.status-text');
+
+                        if (status === 'Intrusion') {
+                            el.style.background = 'rgba(239, 68, 68, 0.2)';
+                            el.style.borderColor = '#ef4444';
+                            el.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
+                            textEl.innerHTML = '⚠️ ATTACK';
+                            textEl.style.color = '#ef4444';
+                        } else {
+                            el.style.background = 'rgba(16, 185, 129, 0.15)';
+                            el.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                            el.style.boxShadow = 'none';
+                            textEl.innerHTML = 'NORMAL';
+                            textEl.style.color = '#34d399';
+                        }
+                    }
+                })
+                .catch(err => console.error("Status grid error", err));
+        }
+
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const stepTime = Math.abs(Math.floor(duration / range));
+            const obj = document.getElementById(id);
+            const timer = setInterval(function () {
+                current += increment;
+                obj.innerHTML = current;
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, Math.min(stepTime, 50)); // Cap speed
+        }
+
+        function runAttack(type) {
+            const output = document.getElementById('sim-output');
+            output.style.display = 'block';
+            output.innerHTML = `<span style="color: #94a3b8;">> Initiating ${type} simulation...</span>`;
+
+            fetch(`/api/simulate/${type}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    output.innerHTML += `<br><span style="color: #34d399;">> ${data.status ? data.status.toUpperCase() : 'DONE'}:</span> ${data.message || data.url}`;
+
+                    if (data.url) {
+                        output.innerHTML += `<br><span style="color: #94a3b8;">> Action:</span> Copy this URL to test the phishing detector: <br><span style="user-select: all; background: #333; padding: 2px 5px; border-radius: 4px;">${data.url}</span>`;
+                    }
+
+                    output.innerHTML += `<br><span style="color: #94a3b8;">> Monitoring logs for detection...</span>`;
+
+                    // Force a log update soon
+                    setTimeout(updateLogs, 2000);
+                })
+                .catch(err => {
+                    output.innerHTML += `<br><span style="color: #f87171;">> ERROR:</span> ${err.message}`;
+                });
+        }
+
+        function run10PartSim() {
+            const output = document.getElementById('sim-output');
+            output.style.display = 'block';
+            output.innerHTML = `<span style="color: #a78bfa;">> Starting 10-Part Live Monitor Simulation...</span>`;
+
+            fetch('/api/simulate/10parts', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    output.innerHTML += `<br><span style="color: #34d399;">> START:</span> ${data.message}`;
+                    output.innerHTML += `<br><span style="color: #94a3b8;">> Watch the Line Chart and Recent Logs for 192.168.1.X activity.</span>`;
+                })
+                .catch(err => {
+                    output.innerHTML += `<br><span style="color: #f87171;">> ERROR:</span> ${err.message}`;
+                });
+        }
+
+        function updateLogs() {
+            fetch('/api/live-data')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('logs-body');
+                    tbody.innerHTML = '';
+
+                    if (data.logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">No activity detected yet...</td></tr>';
+                        return;
+                    }
+
+                    data.logs.forEach((log, index) => {
+                        const row = document.createElement('tr');
+                        row.style.animation = `fadeIn 0.5s ease forwards ${index * 0.1}s`;
+                        row.style.opacity = '0';
+
+                        let badgeClass = 'normal';
+                        if (log.status === 'danger' || log.type === 'Intrusion') badgeClass = 'attack';
+
+                        row.innerHTML = `
+                            <td><span style="color: var(--primary-light); font-family: 'JetBrains Mono';">${log.timestamp.split(' ')[1]}</span></td>
+                            <td>${log.src_ip}</td>
+                            <td><span style="font-weight: 600;">${log.protocol}</span></td>
+                            <td><span class="status-badge ${badgeClass}">${log.type}</span></td>
+                            <td style="color: var(--text-muted);">${log.info}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(err => console.error('Error fetching logs:', err));
+        }
+
+        initCharts();
+        setInterval(() => { updateStats(); }, 2000); // Fast stats update
+        setInterval(() => { updateLogs(); }, 3000); // Logs update
+        setInterval(() => { updateLineChart(); }, 2000); // Line Chart update
+        setInterval(() => { updateStatusGrid(); }, 1000); // Status Grid update (fast)
+        updateLogs();
+        updateStats();
+        updateLineChart();
+        updateStatusGrid();
+
+        // Add keyframes dynamically
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    </script>
+</body>
+
+</html>

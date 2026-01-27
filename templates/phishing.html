@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detector - AI Guardian</title>
+    <!-- Use fresh cache buster -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v6">
+    <style>
+        .phishing-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 5vh;
+            position: relative;
+            z-index: 2;
+        }
+
+        .result-box {
+            margin-top: 40px;
+            padding: 2.5rem;
+            border-radius: 24px;
+            /* Glassmorphism using global variables implicitly via class if needed, or inline */
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animated border for result box */
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .score-bar {
+            height: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            margin: 25px 0;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .score-fill {
+            height: 100%;
+            transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .details-list {
+            margin-top: 20px;
+            padding-left: 20px;
+        }
+
+        .details-list li {
+            margin-bottom: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .details-list li::before {
+            content: '•';
+            color: var(--primary-light);
+            font-size: 1.5rem;
+            line-height: 0;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="mesh-gradient"></div>
+    <div class="noise-overlay"></div>
+
+    <div class="phishing-container">
+        <!-- Navigation -->
+        <div style="margin-bottom: 3rem; display: flex; justify-content: center; gap: 15px;">
+            <a href="/" class="nav-link">← Traffic Analyzer</a>
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="/honeypot" class="nav-link">Honeypot</a>
+            <span class="nav-link active">Phishing Shield</span>
+        </div>
+
+        <header style="margin-bottom: 3rem;">
+            <div class="badge" style="margin-bottom: 1rem;">AI-Powered Security</div>
+            <h1 class="text-gradient" style="font-size: 4rem; line-height: 1.1; margin-bottom: 1rem; font-weight: 800;">
+                Phishing Shield
+            </h1>
+            <p style="color: var(--text-muted); font-size: 1.2rem; max-width: 600px; margin: 0 auto;">
+                Advanced URL analysis using deep learning patterns to detect malicious websites in real-time.
+            </p>
+        </header>
+
+        <!-- Glass Card Form -->
+        <div class="glass-spotlight" style="padding: 2.5rem; max-width: 700px; margin: 0 auto;">
+            <form action="/phishing" method="POST">
+                <div class="modern-input-group">
+                    <input type="text" name="url" class="modern-input" placeholder=" " id="url-input"
+                        value="{{ url if url else '' }}" autocomplete="off"
+                        style="padding: 1.2rem 1rem; font-size: 1.1rem;">
+                    <label for="url-input" class="modern-label" style="background: transparent;">Paste suspicious URL
+                        here</label>
+                </div>
+
+                <button type="submit" class="cyber-btn" style="width: 100%; margin-top: 1rem; font-size: 1.1rem;">
+                    Analyze URL
+                </button>
+            </form>
+        </div>
+
+        {% if result %}
+        <div class="result-box">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <div style="
+                        width: 60px; height: 60px; 
+                        border-radius: 50%; 
+                        display: flex; align-items: center; justify-content: center;
+                        font-size: 2.5rem;
+                        background: {{ 'rgba(16, 185, 129, 0.1)' if result == 'Safe' else 'rgba(239, 68, 68, 0.1)' }};
+                        border: 1px solid {{ 'rgba(16, 185, 129, 0.3)' if result == 'Safe' else 'rgba(239, 68, 68, 0.3)' }};
+                    ">
+                        {{ '🛡️' if result == 'Safe' else '⚠️' }}
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 2rem; color: white;">
+                            {{ 'Safe Website' if result == 'Safe' else 'Phishing Detected' }}
+                        </h2>
+                        <span style="color: {{ '#86efac' if result == 'Safe' else '#fca5a5' }}; font-weight: 500;">
+                            {{ 'Verified Secure' if result == 'Safe' else 'High Risk Detected' }}
+                        </span>
+                    </div>
+                </div>
+
+                <div style="text-align: right;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: white;">
+                        {{ probability }}%
+                    </div>
+                    <div
+                        style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                        Confidence
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-bar">
+                <div class="score-fill" style="width: {{ probability }}%; 
+                           background: linear-gradient(90deg, 
+                           {{ '#86efac' if result == 'Phishing' else '#ef4444' }} 0%, 
+                           {{ '#10b981' if result == 'Phishing' else '#dc2626' }} 100%);">
+                </div>
+            </div>
+
+            {% if details %}
+            <div style="margin-top: 2rem;">
+                <h4
+                    style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    Analysis Details
+                </h4>
+                <ul class="details-list">
+                    {% for detail in details %}
+                    <li>{{ detail }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div style="margin-top: 2rem; padding: 1.5rem; border-radius: 16px; background: rgba(0,0,0,0.2);">
+                <p style="margin: 0; line-height: 1.6; color: var(--text-muted);">
+                    AI Analysis:
+                    <span style="color: white;">
+                        {% if result == 'Safe' %}
+                        The URL structure follows standard patterns and shows no signs of obfuscation or malicious
+                        intent.
+                        {% else %}
+                        The URL contains suspicious patterns consistent with known phishing attacks. We recommend
+                        avoiding this site.
+                        {% endif %}
+                    </span>
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Spotlight Effect
+        const spotlights = document.querySelectorAll('.glass-spotlight');
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            document.documentElement.style.setProperty('--mouse-x', x + 'px');
+            document.documentElement.style.setProperty('--mouse-y', y + 'px');
+        });
+    </script>
+</body>
+
+</html>

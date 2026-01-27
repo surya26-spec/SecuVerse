@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecuVerse</title>
+    <!-- CSS with cache busting -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v8">
+</head>
+
+<body>
+    <!-- Background Effects -->
+    <div class="mesh-gradient"></div>
+    <div class="noise-overlay"></div>
+
+    <!-- Logout Button -->
+    <div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+        <a href="/logout" style="
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(239, 68, 68, 0.15); 
+            color: #f87171; 
+            text-decoration: none; 
+            border: 1px solid rgba(239, 68, 68, 0.4); 
+            border-radius: 8px; 
+            font-family: inherit;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+        " onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'"
+            onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'">
+            LOGOUT
+        </a>
+    </div>
+
+    <div class="hero-split">
+        <!-- Left Column: Content -->
+        <div class="hero-text">
+            <h4>
+                <span class="badge">v2.0 Beta</span>
+            </h4>
+            <h1 class="text-gradient">
+                SecuVerse
+            </h1>
+            <p>
+                Advanced real-time packet inspection powered by deep learning models.
+                Detect anomalies, block intrusions, and visualize threats with our next-gen guardian.
+            </p>
+
+            <div style="display: flex; gap: 15px; margin-top: 2rem;">
+                <a href="/dashboard" class="cyber-btn"
+                    style="width: auto; text-decoration: none; text-align: center; padding: 1rem 2rem;">
+                    Launch GuardView
+                </a>
+                <a href="/phishing" class="cyber-btn"
+                    style="width: auto; background: transparent; border: 1px solid var(--border-glass); text-decoration: none; text-align: center; padding: 1rem 2rem;">
+                    Phishing Shield
+                </a>
+            </div>
+
+            <!-- Terminal Feed -->
+            <div class="glass-spotlight" style="margin-top: 3rem; padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div style="display: flex; gap: 6px;">
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+                    </div>
+                    <span
+                        style="font-family: monospace; font-size: 0.8rem; color: var(--text-muted); opacity: 0.7;">live_packet_stream.sh</span>
+                </div>
+
+                <div class="terminal-feed" id="live-feed-body">
+                    <div style="text-align: center; color: var(--text-muted); padding: 1rem;">Initializing connection...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Interactive Form -->
+        <div class="glass-spotlight"
+            style="padding: 2.5rem; transform: perspective(1000px) rotateY(-5deg); transition: transform 0.5s;">
+            <h3
+                style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem; font-weight: 600;">
+                Traffic Parameters
+            </h3>
+
+            <!-- Form -->
+            <form action="/predict" method="POST">
+                {% if prediction %}
+                <div class="glass-spotlight {{ 'bg-danger' if result_class == 'danger' else 'bg-safe' }}"
+                    style="padding: 1rem; margin-bottom: 1.5rem;">
+                    <strong class="{{ 'text-danger' if result_class == 'danger' else 'text-safe' }}">{{
+                        prediction }}</strong>
+                </div>
+                {% endif %}
+
+                <div class="modern-input-group">
+                    <input type="number" step="0.1" name="duration" class="modern-input" placeholder=" " id="duration">
+                    <label for="duration" class="modern-label">Duration (sec)</label>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="modern-input-group">
+                        <select name="protocol_type" class="modern-input" style="padding-top: 1rem;">
+                            <option value="tcp">TCP</option>
+                            <option value="udp">UDP</option>
+                            <option value="icmp">ICMP</option>
+                        </select>
+                        <label class="modern-label">Protocol</label>
+                    </div>
+
+                    <div class="modern-input-group">
+                        <select name="service" class="modern-input" style="padding-top: 1rem;">
+                            <option value="http">HTTP</option>
+                            <option value="ftp">FTP</option>
+                            <option value="private">Private</option>
+                            <option value="smtp">SMTP</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <label class="modern-label">Service</label>
+                    </div>
+                </div>
+
+                <div class="modern-input-group">
+                    <select name="flag" class="modern-input" style="padding-top: 1rem;">
+                        <option value="SF">SF (Normal)</option>
+                        <option value="S0">S0 (Connection Attempt)</option>
+                        <option value="REJ">REJ (Rejected)</option>
+                    </select>
+                    <label class="modern-label">Status Flag</label>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="modern-input-group">
+                        <input type="number" name="src_bytes" class="modern-input" placeholder=" " id="src_bytes">
+                        <label for="src_bytes" class="modern-label">Source Bytes</label>
+                    </div>
+                    <div class="modern-input-group">
+                        <input type="number" name="dst_bytes" class="modern-input" placeholder=" " id="dst_bytes">
+                        <label for="dst_bytes" class="modern-label">Dest Bytes</label>
+                    </div>
+                </div>
+
+                <div class="modern-input-group">
+                    <input type="number" name="count" class="modern-input" placeholder=" " id="count">
+                    <label for="count" class="modern-label">Connection Count</label>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="modern-input-group">
+                        <input type="number" step="0.01" max="1" min="0" name="same_srv_rate" class="modern-input"
+                            placeholder=" " id="same_srv_rate">
+                        <label for="same_srv_rate" class="modern-label">Same Srv Rate</label>
+                    </div>
+                    <div class="modern-input-group">
+                        <input type="number" step="0.01" max="1" min="0" name="diff_srv_rate" class="modern-input"
+                            placeholder=" " id="diff_srv_rate">
+                        <label for="diff_srv_rate" class="modern-label">Diff Srv Rate</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="cyber-btn" style="margin-top: 1rem;">
+                    Run Analysis
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Spotlight Effect Script
+        const spotlights = document.querySelectorAll('.glass-spotlight');
+
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+
+            // Global variables for generic effects
+            document.documentElement.style.setProperty('--mouse-x', x + 'px');
+            document.documentElement.style.setProperty('--mouse-y', y + 'px');
+
+            // Per-card Spotlight
+            spotlights.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // We use ::before on the card, so we can't easily set variables solely on the card 
+                // unless we use specific variables for that card.
+                // However, the CSS is using global --mouse-x/y relative to viewport for the radial gradient.
+                // Let's stick to the viewport based gradient in CSS or update a specific variable if needed.
+                // Actually, the CSS implementation `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y)...)` uses viewport coords, 
+                // so we just need to update global --mouse-x/y which we did above.
+            });
+        });
+
+        // Live Feed Update
+        function updateLiveFeed() {
+            fetch('/api/live-data')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('live-feed-body');
+                    if (data.logs.length === 0) return;
+
+                    const recentLogs = data.logs.slice(0, 5); // Take last 5
+                    container.innerHTML = ''; // basic clear for demo, could implement append for 'terminal' feel
+
+                    recentLogs.forEach((log, index) => {
+                        const line = document.createElement('div');
+                        line.className = 'terminal-line';
+                        line.style.animationDelay = `${index * 100}ms`;
+
+                        const color = log.type === 'Intrusion' ? '#ef4444' : '#10b981';
+
+                        line.innerHTML = `
+                            <span style="color: #64748b;">[${log.timestamp.split(' ')[1]}]</span>
+                            <span style="color: #cbd5e1;">${log.protocol} > ${log.src_ip}</span>
+                            <span style="color: ${color};">${log.type}</span>
+                        `;
+                        container.appendChild(line);
+                    });
+                })
+                .catch(err => console.error("Feed error", err));
+        }
+
+        setInterval(updateLiveFeed, 2000);
+        updateLiveFeed();
+
+        // Tilt effect for hero right column
+        const rightCol = document.querySelector('.hero-split > div:last-child');
+        document.addEventListener('mousemove', (e) => {
+            if (window.innerWidth > 900) {
+                const xPos = (window.innerWidth / 2 - e.pageX) / 50;
+                const yPos = (window.innerHeight / 2 - e.pageY) / 50;
+                rightCol.style.transform = `perspective(1000px) rotateY(${xPos}deg) rotateX(${yPos}deg)`;
+            }
+        });
+
+        // Custom Dropdown Logic
+        document.querySelectorAll('select.modern-input').forEach(select => {
+            // Create custom structure
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-select-wrapper';
+
+            const customSelect = document.createElement('div');
+            customSelect.className = 'custom-select';
+
+            const trigger = document.createElement('div');
+            trigger.className = 'custom-select__trigger';
+            const selectedOption = select.options[select.selectedIndex];
+            trigger.innerHTML = `<span>${selectedOption.text}</span>`;
+
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'custom-options';
+
+            // Build options
+            Array.from(select.options).forEach(option => {
+                const customOption = document.createElement('div');
+                customOption.className = `custom-option ${option.selected ? 'selected' : ''}`;
+                customOption.textContent = option.text;
+                customOption.dataset.value = option.value;
+
+                customOption.addEventListener('click', () => {
+                    // Update original select
+                    select.value = option.value;
+                    select.dispatchEvent(new Event('change'));
+
+                    // Update trigger text
+                    trigger.querySelector('span').textContent = option.text;
+
+                    // Update selected styling
+                    optionsContainer.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+                    customOption.classList.add('selected');
+
+                    // Close dropdown
+                    customSelect.classList.remove('open');
+                });
+
+                optionsContainer.appendChild(customOption);
+            });
+
+            // Assemble DOM
+            customSelect.appendChild(trigger);
+            customSelect.appendChild(optionsContainer);
+            wrapper.appendChild(customSelect);
+
+            // hide original select but keep in DOM for form submission
+            select.style.display = 'none';
+            select.parentNode.insertBefore(wrapper, select);
+
+            // Toggle dropdown
+            trigger.addEventListener('click', (e) => {
+                // Close other open dropdowns
+                document.querySelectorAll('.custom-select').forEach(s => {
+                    if (s !== customSelect) {
+                        s.classList.remove('open');
+                        // Reset z-index for other inputs
+                        const otherWrapper = s.closest('.modern-input-group');
+                        if (otherWrapper) otherWrapper.style.zIndex = '2';
+                    }
+                });
+
+                customSelect.classList.toggle('open');
+
+                // Handle z-index for current
+                const currentWrapper = customSelect.closest('.modern-input-group');
+                if (currentWrapper) {
+                    currentWrapper.style.zIndex = customSelect.classList.contains('open') ? '1000' : '2';
+                }
+
+                e.stopPropagation();
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        window.addEventListener('click', () => {
+            document.querySelectorAll('.custom-select').forEach(select => {
+                select.classList.remove('open');
+                const wrapper = select.closest('.modern-input-group');
+                if (wrapper) wrapper.style.zIndex = '2';
+            });
+        });
+    </script>
+</body>
+
+</html>

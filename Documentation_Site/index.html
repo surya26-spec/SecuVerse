@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI IDS - Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Hero Section -->
+    <header>
+        <div class="hero-badge">AI-Powered Cybersecurity</div>
+        <h1>Intelligent Intrusion<br>Detection System</h1>
+        <p style="margin-top: 1.5rem;">
+            A next-generation network defense tool that uses Machine Learning to detect port scans,
+            phishing attempts, and malicious traffic in real-time.
+        </p>
+        <a href="#overview" class="scroll-indicator">
+            <i class="fa-solid fa-chevron-down"></i> Scroll to Explore
+        </a>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#overview" class="active">Overview</a>
+            <a href="#features">Features</a>
+            <a href="#architecture">Logic Flow</a>
+            <a href="#api-ref">Code Ref</a>
+            <a href="#install">Installation</a>
+        </div>
+    </nav>
+
+    <!-- Overview -->
+    <section id="overview">
+        <h2>🔭 Project Overview</h2>
+        <p>
+            Traditional firewalls rely on static rules. <strong>AI IDS</strong> evolves.
+            By analyzing packet behavior using a pre-trained KDD 99 model, it identifies anomalies
+            that static rules miss. It combines this with active defense mechanisms like Phishing Detection and
+            Honeypots.
+        </p>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features">
+        <h2>⚡ Core Capabilities</h2>
+        <div class="grid">
+            <!-- Feature 1 -->
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-network-wired"></i></div>
+                <h3>AI Packet Sniffer</h3>
+                <p>
+                    Listens to network traffic promiscuously. It constructs "Flows" from raw packets and
+                    extracts 41 distinctive features (duration, flags, bytes) to feed into the AI model.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-fish-fins"></i></div>
+                <h3>Phishing Detector</h3>
+                <p>
+                    Analyzes URLs for lexical maliciousness. Checks for IP usage, suspicious length,
+                    typosquatting, and sensitive keywords like "banking" or "secure".
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-lock"></i></div>
+                <h3>Honeypot Trap</h3>
+                <p>
+                    A decoy login page designed to lure attackers. It silently logs IP addresses
+                    and detects SQL Injection attempts specifically targeting administrative portals.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-bug"></i></div>
+                <h3>Attack Simulator</h3>
+                <p>
+                    Built-in Red Team tool. Safely execute Port Scans, Brute Force attacks, and SQL
+                    Injections against yourself to verify the system's responsiveness.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Logic Flow (Mermaid) -->
+    <section id="architecture">
+        <h2>🧠 System Logic & Architecture</h2>
+        <p style="margin-bottom: 2rem;">
+            Visualizing how the system processes data from detection to alert.
+        </p>
+
+        <h3>1. The Detection Pipeline</h3>
+        <div class="chart-container">
+            <pre class="mermaid">
+            graph LR
+                %% Styling
+                classDef danger fill:#ef4444,stroke:#7f1d1d,color:white;
+                classDef safe fill:#10b981,stroke:#065f46,color:white;
+                classDef neural fill:#3b82f6,stroke:#1e3a8a,color:white;
+
+                Input([📡 Packet In]) --> Flow[Extract Flow]
+                Flow --> Feature[Feature Eng.]
+                Feature --> Model{{🧠 AI Model}}
+                
+                Model -- "Pred: Normal" --> Safe(✅ Log Safe):::safe
+                Model -- "Pred: Attack" --> Alert(🚨 Log Intrusion):::danger
+                
+                subgraph "Heuristics"
+                    Flow --> Rate{High Rate?}
+                    Rate -- Yes --> PortScan(🚨 Port Scan):::danger
+                end
+            </pre>
+        </div>
+
+        <h3>2. Phishing Analysis Logic</h3>
+        <div class="chart-container">
+            <pre class="mermaid">
+            flowchart TD
+                Start(Check URL) --> A{Contains IP?}
+                A -- Yes --> Fail1[Score +30]
+                A -- No --> B{Length > 75?}
+                
+                B -- Yes --> Fail2[Score +20]
+                B -- No --> C{Keywords?}
+                
+                C -- "bank, login" --> Fail3[Score +25]
+                
+                Fail1 --> Sum[Total Score]
+                Fail2 --> Sum
+                Fail3 --> Sum
+                
+                Sum --> Result{Score > 50?}
+                Result -- Yes --> Bad[🔴 Phishing Detected]
+                Result -- No --> Good[🟢 URL Safe]
+                
+                style Bad fill:#ef4444,color:white
+                style Good fill:#10b981,color:white
+            </pre>
+        </div>
+    </section>
+
+    </section>
+
+    <!-- Code Reference -->
+    <section id="api-ref">
+        <h2>🛠 Code Reference</h2>
+        <p>Detailed documentation of core functions and classes.</p>
+
+        <!-- App.py -->
+        <h3 style="margin-top: 2rem;">1. Flask Server <span class="method-name">(app.py)</span></h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="30%">Function</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="method-name">login_required(f)</span></td>
+                        <td>Decorator. Checks if a user is logged in before accessing a route. Redirects to login if
+                            session is empty.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">start_sniffer()</span></td>
+                        <td>Initializes the background thread for <code>PacketSniffer</code>. Ensures monitoring runs
+                            concurrently with the web server.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">honeypot()</span></td>
+                        <td>Route: <code>/honeypot</code>. Renders the decoy page and detects SQL Injection strings in
+                            POST data.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">predict()</span></td>
+                        <td>Route: <code>/predict</code>. Takes 41-feature array from UI form, pre-processes it, and
+                            queries the ML model.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Sniffer.py -->
+        <h3 style="margin-top: 2rem;">2. Packet Sniffer <span class="method-name">(sniffer.py)</span></h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="30%">Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="method-name">PacketSniffer.start()</span></td>
+                        <td>Auto-detects the active network interface (Wi-Fi/Ethernet) and starts Scapy sniffing loop.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">get_flow_key(packet)</span></td>
+                        <td>Generates a unique 5-tuple ID <code>(src, dst, sport, dport, proto)</code> to group packets
+                            into flows.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">extract_features(...)</span></td>
+                        <td>Calculates derived stats (duration, byte count, flag counts) required for the KDD 99 model
+                            input.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">process_packet()</span></td>
+                        <td>Callback for every packet. Updates flow stats, runs ML prediction, and commits to DB.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phishing.py -->
+        <h3 style="margin-top: 2rem;">3. Phishing Detector <span class="method-name">(phishing.py)</span></h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="30%">Function</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="method-name">extract_features(url)</span></td>
+                        <td>Parses the URL string to find suspicious patterns like IP addresses, '@' symbols, or high
+                            length.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">predict_phishing(url)</span></td>
+                        <td>Calculates a risk score based on features. Returns "Phishing" if score > 50.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Attack Sim -->
+        <h3 style="margin-top: 2rem;">4. Attack Simulator <span class="method-name">(attack_sim.py)</span></h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th width="30%">Function</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="method-name">simulate_port_scan(ip)</span></td>
+                        <td>Rapidly opens connections to ports 21, 22, 80, 443 to trigger the Sniffer's high-frequency
+                            alarm.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="method-name">simulate_brute_force(t)</span></td>
+                        <td>Sends random passwords to the honeypot to test brute-force logging.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+    <!-- Installation -->
+    <section id="install">
+        <h2>🚀 Installation Guide</h2>
+        <ul class="step-list">
+            <li class="step-item">
+                <div class="step-number">1</div>
+                <div>
+                    <h3>Install Python Dependencies</h3>
+                    <p>Ensure you have Python 3.8+ installed.</p>
+                    <pre><code>pip install -r requirements.txt</code></pre>
+                </div>
+            </li>
+            <li class="step-item">
+                <div class="step-number">2</div>
+                <div>
+                    <h3>Run the Application</h3>
+                    <p>This starts the Flask server and the background Sniffer thread.</p>
+                    <pre><code>python app.py</code></pre>
+                </div>
+            </li>
+            <li class="step-item">
+                <div class="step-number">3</div>
+                <div>
+                    <h3>Access Dashboard</h3>
+                    <p>Open your browser and navigate to the local server.</p>
+                    <pre><code>http://127.0.0.1:5001</code></pre>
+                </div>
+            </li>
+        </ul>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 AI IDS Project. Built with Flask & Scikit-Learn.</p>
+        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.7;">Documentation generated automatically.</p>
+    </footer>
+
+    <!-- Init Script -->
+    <script>
+        // Init Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'Inter'
+        });
+
+        // Sticky Nav Active State
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-container a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

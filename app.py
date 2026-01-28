@@ -317,6 +317,11 @@ def part_status():
     # Fetch current status (Normal vs Intrusion) for the 10 parts
     return database.get_part_statuses()
 
+@app.route('/api/attack_stats')
+def attack_stats():
+    # Fetch attack counts for the radar chart
+    return database.get_attack_counts()
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=5001)

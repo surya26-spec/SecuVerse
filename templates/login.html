@@ -4,302 +4,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Access - SecuVerse</title>
-    <!-- Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-    <style>
-        /* Reset and Base */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: #0f172a;
-            /* Deep tech blue/black */
-            color: #fff;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        /* Canvas Background */
-        #neural-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
-
-        /* Overlay to ensure text readability */
-        .overlay-gradient {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, transparent 20%, #0f172a 90%);
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        /* Login Container */
-        .login-container {
-            z-index: 10;
-            width: 100%;
-            max-width: 420px;
-            padding: 20px;
-            perspective: 1000px;
-        }
-
-        .glass-card {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            transform-style: preserve-3d;
-            transition: transform 0.1s ease-out;
-            /* Smooth tilt */
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Shimmer effect */
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-            transform: rotate(45deg);
-            animation: shine 8s infinite linear;
-            pointer-events: none;
-        }
-
-        @keyframes shine {
-            0% {
-                transform: rotate(45deg) translateY(-100%);
-            }
-
-            100% {
-                transform: rotate(45deg) translateY(100%);
-            }
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .logo-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: inline-block;
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
-            animation: pulse 3s infinite ease-in-out;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 5px;
-            color: #fff;
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            font-weight: 300;
-        }
-
-        /* Inputs */
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .input-field {
-            width: 100%;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 16px 16px 16px 48px;
-            border-radius: 12px;
-            color: white;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .input-field::placeholder {
-            color: #64748b;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            background: rgba(139, 92, 246, 0.05);
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
-            transform: translateY(-1px);
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #64748b;
-            transition: color 0.3s;
-            pointer-events: none;
-        }
-
-        .input-field:focus+.input-icon {
-            color: #8b5cf6;
-        }
-
-        /* Button */
-        .btn-glow {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-            color: white;
-            font-weight: 600;
-            font-size: 1.05rem;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
-            margin-top: 10px;
-        }
-
-        .btn-glow:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.6);
-        }
-
-        .btn-glow:active {
-            transform: translateY(0) scale(0.98);
-        }
-
-        /* Error Message */
-        .error-banner {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: shake 0.5s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-5px);
-            }
-
-            75% {
-                transform: translateX(5px);
-            }
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.8;
-                transform: scale(1.05);
-            }
-        }
-    </style>
+    <title>Secure Access // SYSTEM_LOGIN</title>
+    <!-- Use fresh cache buster -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v11">
 </head>
 
 <body>
+    <div class="scanlines"></div>
+    <div class="mesh-gradient"></div>
 
     <canvas id="neural-canvas"></canvas>
-    <div class="overlay-gradient"></div>
 
     <div class="login-container">
-        <div class="glass-card" id="tilt-card">
-            <div class="header">
-                <div class="logo-icon">🛡️</div>
-                <h1>SecuVerse</h1>
-                <div class="subtitle">Secure Neural Interface System</div>
+        <div class="glass-spotlight" id="tilt-card" style="padding: 3rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div class="glitch" data-text="SecuVerse" style="font-size: 3rem; margin-bottom: 10px;">SecuVerse</div>
+                <div style="color: var(--text-muted); font-family: var(--font-display);">class: RESTRICTED_ACCESS</div>
             </div>
 
             {% if error %}
-            <div class="error-banner">
-                <span>⚠️</span>
-                <span>{{ error }}</span>
+            <div class="bg-danger"
+                style="padding: 10px; margin-bottom: 20px; color: var(--neon-red); text-align: center;">
+                ERROR: {{ error }}
             </div>
             {% endif %}
 
             <form method="POST">
-                <div class="input-group">
-                    <input type="text" name="username" class="input-field" placeholder="Operator ID" required
-                        autocomplete="off">
-                    <div class="input-icon">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                    </div>
+                <div class="modern-input-group">
+                    <input type="text" name="username" class="modern-input" placeholder=" " required autocomplete="off">
+                    <label class="modern-label">OPERATOR_ID</label>
                 </div>
 
-                <div class="input-group">
-                    <input type="password" name="password" class="input-field" placeholder="Access Key" required>
-                    <div class="input-icon">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                            </path>
-                        </svg>
-                    </div>
+                <div class="modern-input-group">
+                    <input type="password" name="password" class="modern-input" placeholder=" " required>
+                    <label class="modern-label">ACCESS_KEY</label>
                 </div>
 
-                <button type="submit" class="btn-glow">
-                    Initiate Session
+                <button type="submit" class="cyber-btn" style="width: 100%; margin-top: 1rem;">
+                    INITIATE_SESSION
                 </button>
             </form>
         </div>
-        <p
-            style="text-align: center; color: #64748b; margin-top: 25px; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace;">
-            <span style="color: #10b981">●</span> System Online & Monitored<br>
+        <p style="text-align: center; color: var(--text-muted); margin-top: 25px; font-size: 0.8rem;">
+            <span style="color: var(--neon-green)">●</span> System Online & Monitored<br>
             Node: {{ request.remote_addr }}
         </p>
     </div>
@@ -328,8 +75,8 @@
                 this.vx = (Math.random() - 0.5) * 0.8;
                 this.vy = (Math.random() - 0.5) * 0.8;
                 this.size = Math.random() * 2 + 1;
-                this.baseColor = `rgba(139, 92, 246, ${Math.random() * 0.4 + 0.1})`; // Violet theme
-                this.activeColor = `rgba(56, 189, 248, 0.8)`; // Blue active
+                this.baseColor = `rgba(57, 255, 20, ${Math.random() * 0.4 + 0.1})`; // NEON GREEN
+                this.activeColor = `rgba(0, 243, 255, 0.8)`; // CYAN
             }
 
             update() {
@@ -393,7 +140,7 @@
                     const dist = Math.sqrt(dx * dx + dy * dy);
 
                     if (dist < connectionDistance) {
-                        ctx.strokeStyle = `rgba(139, 92, 246, ${0.15 * (1 - dist / connectionDistance)})`;
+                        ctx.strokeStyle = `rgba(57, 255, 20, ${0.15 * (1 - dist / connectionDistance)})`;
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
@@ -410,7 +157,7 @@
                     if (dist < mouseDistance) {
                         // Stronger connection to mouse
                         const opacity = 1 - dist / mouseDistance;
-                        ctx.strokeStyle = `rgba(56, 189, 248, ${opacity * 0.5})`;
+                        ctx.strokeStyle = `rgba(0, 243, 255, ${opacity * 0.5})`;
                         ctx.lineWidth = 1.5;
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
@@ -418,7 +165,7 @@
                         ctx.stroke();
 
                         // Highlight particle
-                        ctx.fillStyle = `rgba(56, 189, 248, ${opacity})`;
+                        ctx.fillStyle = `rgba(0, 243, 255, ${opacity})`;
                         ctx.beginPath();
                         ctx.arc(particles[i].x, particles[i].y, particles[i].size * 1.5, 0, Math.PI * 2);
                         ctx.fill();

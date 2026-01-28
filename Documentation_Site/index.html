@@ -119,6 +119,7 @@
                 subgraph "Heuristics"
                     Flow --> Rate{High Rate?}
                     Rate -- Yes --> PortScan(🚨 Port Scan):::danger
+                    PortScan --> Alert
                 end
             </pre>
         </div>

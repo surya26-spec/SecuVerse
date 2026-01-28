@@ -108,12 +108,12 @@ def get_monitor_stats(seconds=30):
     # Our format is '%Y-%m-%d %H:%M:%S'
     
     c.execute('''
-        SELECT substr(timestamp, 12, 8) as time_sec, src_ip, COUNT(*) 
+        SELECT timestamp, src_ip, COUNT(*) 
         FROM logs 
         WHERE src_ip LIKE '192.168.1.%' 
         AND id > (SELECT MAX(id) - 10000 FROM logs) -- optimization hint
-        GROUP BY time_sec, src_ip
-        ORDER BY time_sec DESC
+        GROUP BY timestamp, src_ip
+        ORDER BY timestamp DESC
         LIMIT 200
     ''')
     
@@ -124,7 +124,14 @@ def get_monitor_stats(seconds=30):
     # { '12:00:01': {'192.168.1.1': 5, ...}, ... }
     data = {}
     for r in rows:
-        t = r[0]
+        # r[0] is now the full timestamp "YYYY-MM-DD HH:MM:SS"
+        # We need to extract just the time part for the chart labels
+        t_full = r[0]
+        try:
+            t = t_full.split(' ')[1] # Get HH:MM:SS
+        except:
+            t = t_full # Fallback if format is weird
+            
         ip = r[1]
         count = r[2]
         if t not in data: data[t] = {}
@@ -167,6 +174,34 @@ def get_part_statuses(seconds=5):
             statuses[ip] = 'Normal'
             
     return statuses
+
+def get_attack_counts(seconds=5):
+    """
+    Returns the count of attack packets for each of the 10 parts
+    based on the last N seconds of data.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    c.execute(f'''
+        SELECT src_ip, COUNT(*) 
+        FROM logs 
+        WHERE src_ip LIKE '192.168.1.%' 
+        AND type != 'Normal'
+        AND timestamp >= datetime('now', 'localtime', '-{seconds} seconds')
+        GROUP BY src_ip
+    ''')
+    
+    rows = dict(c.fetchall())
+    conn.close()
+    
+    # Construct result: { '192.168.1.1': 5, ... }
+    counts = {}
+    for i in range(1, 11):
+        ip = f"192.168.1.{i}"
+        counts[ip] = rows.get(ip, 0)
+            
+    return counts
 
 if __name__ == "__main__":
     init_db()

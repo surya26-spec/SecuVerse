@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Secure Portal</title>
+    <title>Admin Login // RESTRICTED</title>
     <!-- Use fresh cache buster -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v9">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v11">
     <style>
         .honeypot-wrapper {
             display: flex;
@@ -18,91 +18,11 @@
             padding: 20px;
         }
 
-        .honeypot-card {
-            width: 100%;
-            max-width: 420px;
-            /* Glassmorphism using global variables implicitly via class if needed, or inline */
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2.5rem;
-            border-radius: 24px;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .honeypot-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--primary), transparent);
-            animation: scan 2s linear infinite;
-        }
-
-        @keyframes scan {
-            0% {
-                transform: translateX(-100%);
-            }
-
-            100% {
-                transform: translateX(100%);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .logo-circle {
-            width: 80px;
-            height: 80px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 50%;
-            margin: 0 auto 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
-            animation: pulse 3s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 20px rgba(139, 92, 246, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
-            }
-        }
-
         .alert-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
+            background: rgba(255, 7, 58, 0.1);
+            color: var(--neon-red);
             padding: 1rem;
-            border-radius: 12px;
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--neon-red);
             margin-top: 1.5rem;
             font-size: 0.9rem;
             animation: shake 0.5s ease;
@@ -110,6 +30,7 @@
             align-items: center;
             gap: 10px;
             justify-content: center;
+            font-family: var(--font-main);
         }
 
         @keyframes shake {
@@ -119,17 +40,12 @@
                 transform: translateX(0);
             }
 
-            10%,
-            30%,
-            50%,
-            70%,
-            90% {
+            20%,
+            60% {
                 transform: translateX(-5px);
             }
 
-            20%,
             40%,
-            60%,
             80% {
                 transform: translateX(5px);
             }
@@ -140,28 +56,33 @@
 <body>
     <!-- Background Effects -->
     <div class="mesh-gradient"></div>
-    <div class="noise-overlay"></div>
+    <div class="scanlines"></div>
 
     <div class="honeypot-wrapper">
-        <div class="glass-spotlight honeypot-card">
-            <div class="logo-circle">🔒</div>
-            <h2 class="text-gradient" style="margin-bottom: 0.5rem; font-size: 2rem;">Secure Portal</h2>
-            <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Restricted Access Area</p>
+        <div class="glass-spotlight"
+            style="width: 100%; max-width: 500px; text-align: center; padding: 3rem; border: 1px solid var(--neon-red);">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🔒</div>
+            <h2
+                style="margin-bottom: 0.5rem; font-size: 3rem; color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red);">
+                SECURE_PORTAL</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2.5rem; font-family: var(--font-main);">
+                RESTRICTED_ACCESS_AREA // AUTHORIZED_PERS_ONLY</p>
 
             <form action="/honeypot" method="POST" style="text-align: left;">
                 <div class="modern-input-group">
                     <input type="text" id="username" name="username" class="modern-input" placeholder=" " required
                         autocomplete="off">
-                    <label for="username" class="modern-label">Username / Email</label>
+                    <label for="username" class="modern-label">USERNAME_ID</label>
                 </div>
 
                 <div class="modern-input-group">
                     <input type="password" id="password" name="password" class="modern-input" placeholder=" " required>
-                    <label for="password" class="modern-label">Password</label>
+                    <label for="password" class="modern-label">PASSWORD_KEY</label>
                 </div>
 
-                <button type="submit" class="cyber-btn" style="width: 100%; margin-top: 1.5rem;">
-                    Authenticate
+                <button type="submit" class="cyber-btn"
+                    style="width: 100%; margin-top: 1.5rem; border-color: var(--neon-red); color: var(--neon-red);">
+                    AUTHENTICATE
                 </button>
             </form>
 
@@ -171,25 +92,14 @@
             </div>
             {% endif %}
 
-            <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+            <div style="margin-top: 2rem; border-top: 1px dashed var(--text-muted); padding-top: 1.5rem;">
                 <a href="/"
-                    style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none; transition: color 0.3s;">
-                    ← Return to Main Site
+                    style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none; font-family: var(--font-main);">
+                    &lt; RETURN_MAIN_SYSTEM
                 </a>
             </div>
         </div>
     </div>
-
-    <script>
-        // Spotlight Effect
-        const spotlights = document.querySelectorAll('.glass-spotlight');
-        document.addEventListener('mousemove', (e) => {
-            const x = e.clientX;
-            const y = e.clientY;
-            document.documentElement.style.setProperty('--mouse-x', x + 'px');
-            document.documentElement.style.setProperty('--mouse-y', y + 'px');
-        });
-    </script>
 </body>
 
 </html>

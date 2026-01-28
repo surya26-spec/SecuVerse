@@ -1,5 +1,23 @@
 import re
 from urllib.parse import urlparse
+import joblib
+import os
+
+# Globals for caching the model
+MODEL = None
+VECTORIZER = None
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'model', 'phishing_model.pkl')
+VEC_PATH = os.path.join(os.path.dirname(__file__), 'model', 'phishing_vectorizer.pkl')
+
+def load_model():
+    global MODEL, VECTORIZER
+    if MODEL is None:
+        if os.path.exists(MODEL_PATH) and os.path.exists(VEC_PATH):
+            try:
+                MODEL = joblib.load(MODEL_PATH)
+                VECTORIZER = joblib.load(VEC_PATH)
+            except Exception as e:
+                print(f"Failed to load phishing model: {e}")
 
 def extract_features(url):
     features = {}
@@ -46,14 +64,34 @@ def extract_features(url):
     features['has_suspicious_keyword'] = 1 if any(word in url.lower() for word in keywords) else 0
     
     # 9. Mixed Case Domain (e.g. gOOgle.com)
-    # Validate only if there is a domain found
     if domain:
-        # Check if domain has uppercase characters (legit domains are usually strictly lowercase in display)
-        # We ignore typically capitalized first letters if it's just one, but "gOOgle" is suspicious.
         features['has_mixed_case'] = 1 if any(c.isupper() for c in domain) and any(c.islower() for c in domain) else 0
     else:
         features['has_mixed_case'] = 0
 
+    # 10. Typosquatting Check (New)
+    features['is_typosquat'] = 0
+    if domain:
+        # Simple common substitution check for popular domains
+        # We manually check if "g00gle" or similar patterns exist
+        
+        # Normalize: replace 0 with o, 1 with l, etc. to see if it matches a big brand
+        normalized = domain.lower().replace('0', 'o').replace('1', 'l').replace('3', 'e').replace('@', 'a')
+        
+        # Add more brands here to protect them
+        targets = [
+            'google', 'facebook', 'amazon', 'apple', 'microsoft', 'paypal', 'netflix', 'instagram',
+            'zomato', 'swiggy', 'bms', 'paytm', 'flipkart', 'twitter', 'linkedin', 'whatsapp'
+        ]
+        
+        for t in targets:
+            if t in normalized and t not in domain.lower():
+                # If the "corrected" version contains the brand, but the original didn't
+                # It means they used subsitutions like 0 for o.
+                # Exception: legitimate subdomains or weird coincidences, but usually high risk.
+                features['is_typosquat'] = 1
+                break
+                
     return features
 
 def predict_phishing(url):
@@ -121,6 +159,38 @@ def predict_phishing(url):
     # Determine threshold
     # If score > 50 -> Phishing
     
+    # --- ML OVERRIDE ---
+    # If a trained model exists, we use it to refine the prediction.
+    load_model()
+    if MODEL and VECTORIZER:
+        try:
+            # Prepare features for model
+            vec_features = VECTORIZER.transform([features])
+            prediction = MODEL.predict(vec_features)[0] # 0 or 1
+            
+            # Get probability. 
+            # Note: predict_proba returns [prob_class_0, prob_class_1]
+            probs = MODEL.predict_proba(vec_features)[0]
+            ml_prob = probs[1] * 100 # Probability of being phishing
+            
+            if prediction == 1:
+                return "Phishing", ml_prob, details + ["ML Model detected phishing patterns."]
+            else:
+                 # If ML says safe but heuristics match, we might want to warn. 
+                 # But generally ML on this dataset is strong.
+                 
+                 # --- CRITICAL OVERRIDE: Typosquatting ---
+                 # The ML model might miss "g00gle" if it wasn't in the training set features.
+                 if features.get('is_typosquat') == 1:
+                     return "Phishing", 95.0, details + ["Critical: Typosquatting detected (Brand Impersonation)"]
+                 
+                 return "Safe", ml_prob, details + ["ML Model verified as safe."]
+                 
+        except Exception as e:
+            print(f"ML Prediction Error: {e}")
+            # Fallback to heuristic if ML fails
+    
+    # --- HEURISTIC FALLBACK ---
     probability = min(score, 100)
     
     if score >= 50:

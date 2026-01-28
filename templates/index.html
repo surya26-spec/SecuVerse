@@ -4,33 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecuVerse</title>
+    <title>SecuVerse // HACKER_MODE</title>
     <!-- CSS with cache busting -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20260124_v9">
 </head>
 
 <body>
+    <div class="scanlines"></div>
     <!-- Background Effects -->
     <div class="mesh-gradient"></div>
-    <div class="noise-overlay"></div>
 
     <!-- Logout Button -->
     <div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
-        <a href="/logout" style="
+        <a href="/logout" class="logout-btn" style="
             display: inline-block;
             padding: 10px 20px;
-            background: rgba(239, 68, 68, 0.15); 
-            color: #f87171; 
             text-decoration: none; 
-            border: 1px solid rgba(239, 68, 68, 0.4); 
-            border-radius: 8px; 
-            font-family: inherit;
             font-weight: 600;
-            backdrop-filter: blur(5px);
             transition: all 0.3s;
-        " onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'"
-            onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'">
-            LOGOUT
+        ">
+            LOGOUT_SYSTEM
         </a>
     </div>
 
@@ -40,7 +33,7 @@
             <h4>
                 <span class="badge">v2.0 Beta</span>
             </h4>
-            <h1 class="text-gradient">
+            <h1 class="text-gradient glitch" data-text="SecuVerse">
                 SecuVerse
             </h1>
             <p>
@@ -53,9 +46,8 @@
                     style="width: auto; text-decoration: none; text-align: center; padding: 1rem 2rem;">
                     Launch GuardView
                 </a>
-                <a href="/phishing" class="cyber-btn"
-                    style="width: auto; background: transparent; border: 1px solid var(--border-glass); text-decoration: none; text-align: center; padding: 1rem 2rem;">
-                    Phishing Shield
+                <a href="/phishing" class="cyber-btn">
+                    PHISHING_SHIELD
                 </a>
             </div>
 
@@ -72,7 +64,8 @@
                 </div>
 
                 <div class="terminal-feed" id="live-feed-body">
-                    <div style="text-align: center; color: var(--text-muted); padding: 1rem;">Initializing connection...
+                    <div style="text-align: center; color: var(--text-muted); padding: 1rem;">Initializing
+                        connection...
                     </div>
                 </div>
             </div>
@@ -82,7 +75,7 @@
         <div class="glass-spotlight"
             style="padding: 2.5rem; transform: perspective(1000px) rotateY(-5deg); transition: transform 0.5s;">
             <h3
-                style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem; font-weight: 600;">
+                style="margin-bottom: 2rem; border-bottom: 1px dashed var(--text-muted); padding-bottom: 1rem; font-weight: 600;">
                 Traffic Parameters
             </h3>
 

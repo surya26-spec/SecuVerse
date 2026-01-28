@@ -31,6 +31,9 @@ class PartSimulator:
             # Load with header=None since the file has no headers
             df = pd.read_csv(csv_path, header=None)
             
+            # Mix the traffic: Shuffle the dataset so we get a mix of normal and attack
+            df = df.sample(frac=1).reset_index(drop=True)
+            
             # Simple chunking: Split dataframe into 10 roughly equal parts
             chunk_size = len(df) // PARTS_COUNT
             for i in range(PARTS_COUNT):
@@ -102,12 +105,6 @@ class PartSimulator:
                     else:
                         type_ = 'Intrusion' # or label_str
                         status = 'danger'
-
-                    # --- DEMO FILTER ---
-                    # To satisfy user request "which is normal or traffic", 
-                    # we force Parts 1-5 (indices 0-4) to be CLEAN by skipping attack packets.
-                    if i < 5 and type_ == 'Intrusion':
-                        continue 
 
                     log_entry = {
                         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),

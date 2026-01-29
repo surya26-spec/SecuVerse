@@ -112,17 +112,17 @@ def honeypot():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        log_type = 'Brute Force'
+        detection_type = 'Brute Force'
         if "'" in username or "OR" in username.upper() or "UNION" in username.upper():
-            log_type = 'SQL Injection'
+            detection_type = 'SQL Injection'
 
         log_entry = {
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'src_ip': request.remote_addr,
             'protocol': 'HTTP',
             'status': 'Alert',
-            'type': log_type,
-            'info': f"Login Attempt - User: {username}, Pass: {password}"
+            'type': 'Honeypot',
+            'info': f"{detection_type} Attempt - User: {username}, Pass: {password}"
         }
         
         try:
